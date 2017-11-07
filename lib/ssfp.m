@@ -1,5 +1,4 @@
 function [Mc] = ssfp(beta, M0, alpha, phi, dphi, TR, TE, T1, T2)
-% SSFP(beta) generates an SSFP transverse magnetization vector, Mxy
 
 E1 = exp(-TR/T1);
 E2 = exp(-TR/T2);
