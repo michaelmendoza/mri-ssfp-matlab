@@ -1,11 +1,17 @@
 
+% LAMA - Testing 
+
+% Clear and Load data
 clear(); clf; close all;
 addpath('./lib');
 load('/Users/michael/Projects/mri-ssfp-matlab/loader/ssfp_phantom_lama2.mat')
 load('/Users/michael/Projects/mri-ssfp-matlab/loader/GSfieldmap_phantom_LAMA2.mat')
 
-im = im / max(max(max(abs(im)))); 
+% Normalizing
+im = im / max(max(max(abs(im))));
 
+%%
+% Printing all input images
 figure(1);
 subplot(141);
 imshow(abs(im(:,:,1)), []);
@@ -16,6 +22,9 @@ imshow(abs(im(:,:,3)), []);
 subplot(144);
 imshow(abs(im(:,:,4)), []);
 
+%%
+% Taking a single water and a single water pixel and plotting as a function
+% of global betaOffset
 wp = [250, 49];
 fp = [250, 120];
 K = 360;
@@ -47,7 +56,9 @@ plot(abs(points(1,:)));
 subplot(212);
 plot(abs(points(4,:)));
 
-betaOffset = 100 * 2 * pi / K;
+%%
+% Ploting water and fat using lama
+betaOffset = 0 * 2 * pi / K;
 [water, fat] = lama(im(:,:,1), im(:,:,2), im(:,:,3), im(:,:,4), GSFM, betaOffset);
 
 figure(4);
