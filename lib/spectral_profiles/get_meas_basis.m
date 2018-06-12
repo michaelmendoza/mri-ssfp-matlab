@@ -1,4 +1,4 @@
-function [ A,Ms ] = get_meas_basis(imData,meas_smoothing_span)
+function [ Q,Ms,R,E ] = get_meas_basis(imData,meas_smoothing_span)
 
     % Here's the idea:
     % Grab a reasonable portion of the image given by bnds.  Then remove
@@ -23,5 +23,5 @@ function [ A,Ms ] = get_meas_basis(imData,meas_smoothing_span)
     end
     
 %     A = basis(abs(M));
-    A = basis(M);
+    [ Q,R,E ] = basis(M);
 end

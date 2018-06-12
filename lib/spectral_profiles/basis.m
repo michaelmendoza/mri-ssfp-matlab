@@ -1,5 +1,5 @@
-function [ Q ] = basis(A)
+function [ Q,R,E ] = basis(A)
     A = [ ones(size(A(:,1))) A ];
-    [ Q,~ ] = qr(A,0);
+    [ Q,R,E ] = qr(A,0);
 %     Q = A;
 end

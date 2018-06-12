@@ -1,4 +1,4 @@
-function [ A ] = get_sim_basis(alpha,TEs,dphis,T1,T2,fMax,Ns)
+function [ Q,R,E ] = get_sim_basis(alpha,TEs,dphis,T1,T2,fMax,Ns)
     
     % Start a basis counter
     idx = 1;
@@ -21,5 +21,5 @@ function [ A ] = get_sim_basis(alpha,TEs,dphis,T1,T2,fMax,Ns)
     % We're not confident that all columns of M are orthogonal, so we'll
     % run it through a QR decomposition - equivalent to Gram-Schmidt
     % orthogonalization
-    A = basis(M);    
+    [ Q,R,E ] = basis(M);    
 end

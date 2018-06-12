@@ -1,12 +1,11 @@
-close all;
+% close all;
 
 % Flags
 is_raw_data = false;
 
 % Params
 alpha = .5*pi;
-% TEs = [ 3 6 12 ]*1e-3; % ms
-TEs = [ 3 6 12 ]/1000; %ms
+TEs = [ 3 6 12 ]*1e-3; %ms
 dphis = [ 0 pi ]; % radians
 T1 = 270e-3; % ms
 T2 = 85e-3; % ms
@@ -15,7 +14,7 @@ im_dir = 'data/SSFP Spectral Profile ShortTR 12152017';
 regex = 'meas*.*';
 kspace_dir = 'kSpace';
 ROOT = '../../../';
-meas_smoothing_span = 50;
+meas_smoothing_span = 40;
 
 % Choose the filter
 %     pass
@@ -24,7 +23,11 @@ meas_smoothing_span = 50;
 %     notch
 %     notch_offset
 %     guassian_notch
-filter_fun = 'square';
+% filter_fun = 'pass';
+% filter_fun = 'square';
+% filter_fun = 'square_offset';
+% filter_fun = 'notch';
+filter_fun = 'notch_offset';
 
 if is_raw_data
     
@@ -114,10 +117,14 @@ if ~exist('ssfp_spectrum.m','file')
 end
 
 % Generate simulated basis
-sim_basis = get_sim_basis(alpha,TEs,dphis,T1,T2,fMax,Ns);
+[ sim_basis,R_sim,E_sim ] = get_sim_basis(alpha,TEs,dphis,T1,T2,fMax,Ns);
+sim_basis = sim_basis(:,E_sim);
+R_sim = R_sim(E_sim,E_sim);
 
 % Generate the measured basis
-[ meas_basis,Ms ] = get_meas_basis(imData,meas_smoothing_span);
+[ meas_basis,Ms,R_meas,E_meas ] = get_meas_basis(imData,meas_smoothing_span);
+meas_basis = meas_basis(:,E_meas);
+R_meas = R_meas(E_meas,E_meas);
 
 %% Filter Approximations
 % Approximate the function we wanted
@@ -143,40 +150,70 @@ title(sprintf('%s function - measured basis approximation',filter_fun));
 legend('Ideal','Meas. Approximation');
 
 %% Apply filter to image
+% 
+% for jj = 1:size(imData,2)
+%     tmp = squeeze(imData(:,jj,:));
+%     imData_sim(:,jj,:) = tmp*R_sim(2:end,2:end);
+%     imData_meas(:,jj,:) = tmp*R_meas(2:end,2:end);
+% end
+
+if size(imData,3) < size(R_sim,1)
+    imData(:,:,7) = zeros(size(imData(:,:,1)));
+    imData = imData(:,:,[ size(R_sim,1) 1:(size(R_sim,1)-1) ]);
+end
+
+imData_sim = zeros(size(imData));
+imData_meas = zeros(size(imData));
+for ii = 1:size(R_sim,1)
+    for jj = 1:size(R_sim,2)
+        imData_sim(:,:,ii) = imData_sim(:,:,ii) + imData(:,:,ii)*R_sim(ii,jj);
+        imData_meas(:,:,ii) = imData_meas(:,:,ii) + imData(:,:,ii)*R_sim(ii,jj); % This should be using R_meas - not sure why it doesn't work
+    end
+end
 
 im_sim = zeros(size(imData,1),size(imData,2));
 im_meas = zeros(size(imData,1),size(imData,2));
 for ii = 1:size(imData,3)
-    im_sim = im_sim + (f_sim_approx_coeff(ii)*imData(:,:,ii)).^2;
-    im_meas = im_meas + (f_meas_approx_coeff(ii)*imData(:,:,ii)).^2;
+    im_sim = im_sim + (f_sim_approx_coeff(ii)*imData_sim(:,:,ii));
+    im_meas = im_meas + (f_meas_approx_coeff(ii)*imData_meas(:,:,ii));
 end
-
-im_sim = sqrt(im_sim);
-im_meas = sqrt(im_meas);
 
 im_cntrl = rssq(imData,3);
 
 figure;
-subplot(2,3,1);
-imshow(abs(im_sim).',[]);
+subplot(3,3,1);
+imshow(abs(im_sim).',[ 0 max(max(max(abs(im_sim))))*1.2 ]);
 title('Simulated Filtered');
 
-subplot(2,3,2);
-imshow(abs(im_meas).',[]);
+subplot(3,3,2);
+imshow(abs(im_meas).',[ 0 max(max(max(abs(im_meas))))*1.2 ]);
 title('Measured Filtered');
 
-subplot(2,3,3);
-imshow(im_cntrl.',[]);
+subplot(3,3,3);
+imshow(im_cntrl.',[ 0 max(max(max(im_cntrl)))*1.2 ]);
 title('Root Sum of Squares');
 
-subplot(2,3,4);
+subplot(3,3,4);
+plot(abs(sim_basis*f_sim_approx_coeff));
+xlim([ 1 Ns ]);
+title('Simulated Function Approximation');
+
+subplot(3,3,5);
+plot(abs(meas_basis*f_meas_approx_coeff));
+xlim([ 1 Ms ]);
+title('Measured Function Approximation');
+
+subplot(3,3,7);
 plot(abs(im_sim(:,floor(end/2))));
 xlim([ 1 Ns ]);
+title('Slice through center (Sim.)');
 
-subplot(2,3,5);
+subplot(3,3,8);
 plot(abs(im_meas(:,floor(end/2))));
 xlim([ 1 Ns ]);
+title('Slice through center (Meas.)');
 
-subplot(2,3,6);
+subplot(3,3,9);
 plot(im_cntrl(:,floor(end/2)));
 xlim([ 1 Ns ]);
+title('Slice through center (RMSquare)');
