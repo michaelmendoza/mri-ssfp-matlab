@@ -1,4 +1,4 @@
-function [ f ] = get_filter_fun(filter_fun,w)
+function [ f ] = get_filter_fun(filter_fun, w)
 
     if strcmp(filter_fun,'pass')
         f = ones(w,1);
@@ -18,7 +18,20 @@ function [ f ] = get_filter_fun(filter_fun,w)
         f = exp(x_sig)./(exp(x_sig) + 1);
         f = 1 - [f fliplr(f)] + min(f);
         f = [ones(1,floor(3*w/8)) f ones(1,floor(3*w/8))];
+        f = [f ones(1, w - length(f))];
         f = circshift(f,floor(w/4));
+    elseif strcmp(filter_fun,'notch_offset_2')
+        x_sig = linspace(-4,4,w/8);
+        f = exp(x_sig)./(exp(x_sig) + 1);
+        f = 1 - [f fliplr(f)] + min(f);
+        f = [ones(1,floor(3*w/8)) f ones(1,floor(3*w/8))];
+        f = [f ones(1, w - length(f))];
+        f = circshift(f,floor(w/4));    
+        f2 = zeros(1, length(f));
+        for ii = 1:length(f)
+            f2(ii) = f(length(f) - ii + 1);
+        end
+        f = f2;
     elseif strcmp(filter_fun,'guassian_notch')
         f = ones(w,1);
         idx = floor(w/3):floor(2*w/3);
