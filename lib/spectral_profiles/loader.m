@@ -71,7 +71,7 @@ fprintf('Transforming k-space data to image space...\n');
 if isstruct(kSpace{1})
     imData = zeros(size(kSpace{1}.kspace,1), size(kSpace{1}.kspace,2),  size(kSpace{1}.kspace,4));
 else
-    imData = zeros(size(kSpace{1},1),size(kSpace{1},2),numel(kSpace));
+    imData = zeros(size(kSpace{1},1),size(kSpace{1},2), size(kSpace{1},4), numel(kSpace));
 end
 for ii = 1:numel(kSpace)
     if isstruct(kSpace{ii})

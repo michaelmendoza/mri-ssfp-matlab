@@ -1,4 +1,4 @@
-function [ Q,R,E ] = get_sim_basis(alpha,TEs,dphis,T1,T2,fMax,Ns)
+function [ Q,R,E,M ] = get_sim_basis(alpha,TEs,dphis,T1,T2,fMax,Ns)
     
     % Start a basis counter
     idx = 1;

@@ -1,4 +1,8 @@
-function [ f ] = get_filter_fun(filter_fun, w)
+function [ f ] = get_filter_fun(filter_fun, w, shift_fraction)
+
+    if nargin < 3
+        shift_fraction = 0;
+    end
 
     if strcmp(filter_fun,'pass')
         f = ones(w,1);
@@ -8,6 +12,9 @@ function [ f ] = get_filter_fun(filter_fun, w)
     elseif strcmp(filter_fun,'square_offset')
         f = zeros(w,1);
         f(floor(w/4)-floor(w/16):floor(w/4)+floor(w/16)) = 1;
+    elseif strcmp(filter_fun,'square_wide')
+        f = zeros(w,1);
+        f(floor(w/2)-floor(w/4):floor(w/2)+floor(w/4)) = 1;        
     elseif strcmp(filter_fun,'notch')
         x_sig = linspace(-4,4,w/8);
         f = exp(x_sig)./(exp(x_sig) + 1);
@@ -41,4 +48,6 @@ function [ f ] = get_filter_fun(filter_fun, w)
     end
     
     f = f(:);
+    f = circshift(f, floor(w*shift_fraction));
 end
+

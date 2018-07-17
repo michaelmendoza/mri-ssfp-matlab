@@ -12,9 +12,8 @@ if ~exist('ssfp_spectrum.m','file')
 end
 
 % Generate simulated basis
-[ sim_basis,R_sim,E_sim ] = get_sim_basis(alpha,TEs,dphis,T1,T2,fMax,Ns);
+[ sim_basis,R_sim,E_sim, M ] = get_sim_basis(alpha,TEs,dphis,T1,T2,fMax,Ns);
 sim_basis = sim_basis(:,E_sim);
-R_sim = R_sim(E_sim,E_sim);
 
 %% Filter Approximations
 % Approximate the function we wanted
@@ -23,23 +22,23 @@ f_sim = get_filter_fun(filter_fun, Ns, filter_shift);
 % Find the coefficients of the approximation
 f_sim_approx_coeff = sim_basis\f_sim;
 
-%% Apply filter to image
+% Ploting: Compare the ideal to the approximation made with the simulated basis
+figure;
+plot(1:Ns,f_sim,1:Ns,abs(sim_basis*f_sim_approx_coeff)); grid on;
+xlim([ 1 Ns ]);
+title(sprintf('%s function - simulated basis approximation',filter_fun));
+legend('Ideal','Simulated');
 
-% Add bias
-av = mean(mean(mean(imData, 1),2),3);
-bias = av * ones(size(imData(:,:,1)));
-imData = cat(3, bias, imData);
-
-imData_sim = zeros(size(imData));
-for ii = 1:size(R_sim,1)
-    for jj = 1:size(R_sim,2)
-        imData_sim(:,:,ii) = imData_sim(:,:,ii) + imData(:,:,ii) * R_sim(jj,ii);
-    end 
+figure;
+for ii = 1:7
+    subplot(3,3,ii);
+    plot(abs(sim_basis(:,ii)));
 end
 
-im_sim = zeros(size(imData,1),size(imData,2));
-for ii = 1:size(imData,3)
-    im_sim = im_sim + (f_sim_approx_coeff(ii)*imData_sim(:,:,ii));
+figure;
+for ii = 1:6
+    subplot(2,3,ii);
+    plot(abs(M(:,ii)));
 end
 
 end
